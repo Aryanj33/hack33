@@ -7,7 +7,7 @@ import OrganModels from './pages/OrganModels';
 import MedicineScanner from './pages/MedicineScanner';
 import About from './pages/About';
 import Contact from './pages/Contact';
-import UserHome from './Pages/UserHome';
+import UserHome from './pages/Userhome';
 import SymptomAnalyzer from './pages/SymptomAnalyzer';
 import './styles/main.scss';
 
