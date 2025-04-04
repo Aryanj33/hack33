@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
 import { analyzeMedicineImage } from '../services/medicineService'; // Correct import
 import '../styles/medicine.scss';
+import { Chatbot } from '../components/ChatBot';
 
 const MedicineScanner = () => {
   const [image, setImage] = useState(null);
@@ -208,6 +209,7 @@ const MedicineScanner = () => {
           </div>
         )}
       </div>
+            <Chatbot />
     </div>
   );
 };
