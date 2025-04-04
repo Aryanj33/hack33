@@ -7,6 +7,7 @@ import OrganModels from './pages/OrganModels';
 import MedicineScanner from './pages/MedicineScanner';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import UserHome from './Pages/UserHome';
 import './styles/main.scss';
 
 const App = () => {
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="/medicine" element={<MedicineScanner />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/userhome" element={<UserHome />} /> 
         </Routes>
         <Footer />
       </div>

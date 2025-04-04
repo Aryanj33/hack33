@@ -3,6 +3,7 @@ import ParticleBackground from '../components/ParticleBackground';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/home.scss';
+import Testimonials from './Testimonials';
 
 const Home = () => {
   return (
@@ -90,7 +91,8 @@ const Home = () => {
             <img src="/assets/images/about-medical.png" alt="About Mediverse" />
           </div>
         </section>
-
+<Testimonials />
+        {/* Testimonials Section */}
         {/* Contact Section */}
         <section id="contact" className="contact-section">
           <h2>Get In Touch</h2>
