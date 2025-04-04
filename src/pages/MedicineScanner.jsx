@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
-import { analyzePrescription } from '../services/geminiService';
+import { analyzeMedicineImage } from '../services/medicineService'; // Correct import
 import '../styles/medicine.scss';
 
 const MedicineScanner = () => {
@@ -81,20 +81,20 @@ const MedicineScanner = () => {
     setMedicineInfo(null);
 
     try {
-      const result = await analyzePrescription(imageFile);
+      const result = await analyzeMedicineImage(imageFile);
       
-      if (result.summary.includes('Error') || result.summary.includes('fail')) {
-        throw new Error(result.summary);
+      if (result.error || !result.summary) {
+        throw new Error(result.message || "Invalid medicine data received");
       }
       
       setMedicineInfo(result);
     } catch (err) {
       setError(err.message || "Failed to analyze the medicine. Please try again.");
-      console.error("Analysis error:", err);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const triggerFileInput = () => {
     fileInputRef.current.click();

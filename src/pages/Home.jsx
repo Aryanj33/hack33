@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import '../styles/home.scss';
 import Testimonials from './Testimonials';
 
+
 const Home = () => {
   return (
     <div className="home-container">
@@ -23,7 +24,8 @@ const Home = () => {
             </div>
           </div>
           <div className="hero-image">
-            <img src="/assets/images/hero-medical.png" alt="Medical illustration" />
+          {/* <img src={process.env.PUBLIC_URL + '/assets/images/hero-medical.png'} alt="Medical Hero" /> */}
+
           </div>
         </section>
 

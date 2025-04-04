@@ -38,33 +38,84 @@ app.post('/api/analyze-prescription', async (req, res) => {
     }, 55000); // Slightly less than client timeout
   
     try {
-      const { imageData, mimeType } = req.body;
-      console.log("Received image data:");
+      const { imageData, mimeType, patientInfo } = req.body;
+      console.log("Received prescription analysis request");
+      
       const model = genAI.getGenerativeModel({ 
         model: "gemini-1.5-flash",
-
       });
-  
-      const prompt = `Analyze this ${mimeType.startsWith('image') ? 'prescription image' : 'PDF prescription document'} and provide:
-      1. SUMMARY: Medication names (brands) and purposes
-      2. USES: Conditions each medication treats
-      3. SIDE_EFFECTS: Common side effects
-      4. PRECAUTIONS: Important warnings
-      5. DIET_RECOMMENDATIONS: Food interactions
-      6. ADVERSE_REACTIONS: Dangerous reactions
       
-      Respond in lamen terms so that even normal people can understand it and keep the points short and crisp.
+      // Extract useful patient info if provided
+      const patientContext = patientInfo ? `
+        Consider this patient context when analyzing:
+        - Age: ${patientInfo.age || 'Not provided'}
+        - Gender: ${patientInfo.gender || 'Not provided'}
+        - Known allergies: ${patientInfo.allergies || 'None reported'}
+        - Existing conditions: ${patientInfo.conditions || 'None reported'}
+        - Current medications: ${patientInfo.medications || 'None reported'}
+      ` : '';
+  
+      const prompt = `You are a pharmaceutical expert analyzing a prescription image. 
+${patientContext}
 
-      Respond in this exact JSON format, only create pointers inside the array and no subkeys, keep the following structure as it is:
-      {
-        "summary": "",
-        "uses": [],
-        "sideEffects": [],
-        "precautions": [],
-        "dietRecommendations": [],
-        "adverseReactions": []
-      }
-`;
+Analyze this ${mimeType.startsWith('image') ? 'prescription image' : 'PDF prescription document'} with high precision and provide:
+
+1. SUMMARY: A plain text summary listing all medications with their names (brand/generic), dosages, frequencies, and purposes. Format as:
+   "Metoprolol (Betaloc) 50mg twice daily for high blood pressure"
+
+2. USES: An array of strings listing conditions each medication treats. Format each as:
+   "Metoprolol: treats high blood pressure and prevents chest pain"
+
+3. SIDE_EFFECTS: An array of strings listing common side effects. Format each as:
+   "Metoprolol: may cause dizziness, fatigue, or slow heart rate"
+
+4. PRECAUTIONS: An array of strings with specific warnings. Format each as:
+   "Avoid alcohol with Metoprolol as it may increase dizziness"
+
+5. DIET_RECOMMENDATIONS: An array of strings with food-related advice. Format each as:
+   "Take Metoprolol with food to reduce stomach upset"
+
+6. ADVERSE_REACTIONS: An array of strings with serious reactions. Format each as:
+   "Metoprolol: seek help for difficulty breathing or swelling"
+
+STRICT FORMATTING RULES:
+- Only use the exact keys: summary, uses, sideEffects, precautions, dietRecommendations, adverseReactions
+- All values must be either strings (for summary) or arrays of strings (all others)
+- No nested objects or additional keys
+- No medication-specific subkeys
+- Combine all information for each medication into the appropriate arrays
+
+Example of CORRECT format:
+{
+  "summary": "Metoprolol 50mg twice daily for blood pressure...",
+  "uses": [
+    "Metoprolol: treats high blood pressure and chest pain",
+    "Dorzolamide: reduces eye pressure in glaucoma"
+  ],
+  "sideEffects": [
+    "Metoprolol: may cause dizziness or fatigue",
+    "Dorzolamide: may cause eye irritation"
+  ],
+  "precautions": [
+    "Avoid sudden stops with Metoprolol",
+    "Use Dorzolamide eye drops exactly as prescribed"
+  ],
+  "dietRecommendations": [
+    "Take Metoprolol with food",
+    "No special diet needed for Dorzolamide"
+  ],
+  "adverseReactions": [
+    "Metoprolol: seek help for wheezing or swelling",
+    "Dorzolamide: get help for eye pain or vision changes"
+  ]
+}
+
+DO NOT include:
+- Any nested objects
+- Medication-specific subkeys
+- Any keys other than the 6 specified
+- Disclaimers or explanatory text
+- Markdown formatting`;
   
       const result = await model.generateContent({
         contents: [{
@@ -72,22 +123,68 @@ app.post('/api/analyze-prescription', async (req, res) => {
             { text: prompt },
             { inlineData: { mimeType, data: imageData } }
           ]
-        }]
+        }],
+        generationConfig: {
+          temperature: 0.2, // Lower temperature for more factual/deterministic responses
+          topP: 0.8,
+          maxOutputTokens: 1024
+        }
       });
   
       clearTimeout(timeout);
       
       const response = await result.response;
       const text = response.text();
-      console.log('Response text:', text);
       
       let cleanText = text.trim().replace(/^```json\s*[\n]?/, '').replace(/```$/, '').trim();
-      console.log('Cleaned Response Text:', cleanText);
+      console.log('Processed response received');
+      console.log(cleanText);
       
-    let processedResponse = JSON.parse(cleanText);
+      
+      // Validate and sanitize the response
+      let processedResponse;
+      try {
+        processedResponse = JSON.parse(cleanText);
+        
+        // Ensure all expected fields exist
+        const requiredFields = ['summary', 'uses', 'sideEffects', 'precautions', 'dietRecommendations', 'adverseReactions'];
+        for (const field of requiredFields) {
+          if (!processedResponse[field]) {
+            processedResponse[field] = field === 'summary' ? 'Information not clearly visible in prescription' : [];
+          }
+          
+          // Ensure array fields are arrays
+          if (field !== 'summary' && !Array.isArray(processedResponse[field])) {
+            // If it's a string, try to convert to array
+            if (typeof processedResponse[field] === 'string' && processedResponse[field].trim() !== '') {
+              processedResponse[field] = [processedResponse[field]];
+            } else {
+              processedResponse[field] = [];
+            }
+          }
+        }
+        
+        // For array fields, ensure items are properly formatted
+        for (const field of requiredFields.filter(f => f !== 'summary')) {
+          processedResponse[field] = processedResponse[field].map(item => {
+            if (typeof item === 'string') {
+              // Remove bullet points, asterisks, and excessive newlines
+              return item.replace(/^[•\-\*]\s*/, '').trim().replace(/\n{2,}/g, '\n');
+            }
+            return item;
+          }).filter(item => item); // Remove empty entries
+        }
+        
+      } catch (error) {
+        console.error("Error parsing model response:", error);
+        throw new Error("Invalid response format received from analysis model");
+      }
 
-
-      res.json({ success: true, analysis: processedResponse });
+      res.json({ 
+        success: true, 
+        analysis: processedResponse,
+        confidence: result.response.promptFeedback?.safetyRatings ? 'high' : 'medium'
+      });
   
     } catch (error) {
       clearTimeout(timeout);
@@ -98,11 +195,119 @@ app.post('/api/analyze-prescription', async (req, res) => {
         errorType: error.name
       });
     }
+});
+
+
+app.post('/api/analyze-medicine', async (req, res) => {
+    const timeout = setTimeout(() => {
+      res.status(504).json({
+        success: false,
+        message: "Analysis timeout - server took too long to respond"
+      });
+    }, 55000);
+  
+    try {
+      const { imageData, mimeType } = req.body;
+      console.log("Received medicine analysis request");
+      
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+      });
+  
+      const prompt = `You are a pharmaceutical expert analyzing a medicine package image. 
+      Analyze this ${mimeType.startsWith('image') ? 'medicine package image' : 'document'} with high precision and provide:
+  
+      1. SUMMARY: The medicine name (brand/generic), dosage form (tablet, capsule, etc.), and primary purpose.
+  
+      2. USES: 2-3 specific medical conditions this medicine treats.
+  
+      3. SIDE_EFFECTS: 3-5 most common side effects patients should know.
+  
+      4. PRECAUTIONS: Specific warnings (IN ONE SMALL LINERS) about:
+         - Drug interactions
+         - Activities to avoid
+         - When to contact a doctor
+  
+      5. DIET_RECOMMENDATIONS: Any food/drink interactions or timing instructions.
+  
+      6. ADVERSE_REACTIONS: Serious reactions requiring immediate attention.
+  
+      Respond in this exact JSON format:
+      {
+        "summary": "",
+        "uses": [],
+        "sideEffects": [],
+        "precautions": [],
+        "dietRecommendations": [],
+        "adverseReactions": []
+      }`;
+  
+      const result = await model.generateContent({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType, data: imageData } }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.2,
+          topP: 0.8,
+          maxOutputTokens: 1024
+        }
+      });
+  
+      clearTimeout(timeout);
+      
+      const response = await result.response;
+      const text = response.text();
+      
+      let cleanText = text.trim().replace(/^```json\s*[\n]?/, '').replace(/```$/, '').trim();
+      console.log('Processed medicine response received');
+      
+      let processedResponse;
+      try {
+        processedResponse = JSON.parse(cleanText);
+        
+        // Validate response structure
+        const requiredFields = ['summary', 'uses', 'sideEffects', 'precautions', 'dietRecommendations', 'adverseReactions'];
+        for (const field of requiredFields) {
+          if (!processedResponse[field]) {
+            processedResponse[field] = field === 'summary' ? 'Information not clearly visible' : [];
+          }
+          
+          if (field !== 'summary' && !Array.isArray(processedResponse[field])) {
+            processedResponse[field] = [processedResponse[field]].filter(Boolean);
+          }
+        }
+        
+      } catch (error) {
+        console.error("Error parsing medicine response:", error);
+        throw new Error("Invalid response format from medicine analysis");
+      }
+  
+      res.json({ 
+        success: true, 
+        analysis: processedResponse
+      });
+  
+    } catch (error) {
+      clearTimeout(timeout);
+      console.error("Medicine API Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Medicine analysis failed",
+        errorType: error.name
+      });
+    }
   });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date() });
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date(),
+    modelStatus: genAI ? 'initialized' : 'error' 
+  });
 });
 
 app.listen(port, () => {
