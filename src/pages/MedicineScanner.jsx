@@ -5,31 +5,47 @@ import '../styles/medicine.scss';
 
 const MedicineScanner = () => {
   const [image, setImage] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [medicineInfo, setMedicineInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
-    setImage(URL.createObjectURL(e.target.files[0]));
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setImage(URL.createObjectURL(file));
     setCameraActive(false);
+    setMedicineInfo(null);
+    setError(null);
   };
 
   const startCamera = async () => {
     setImage(null);
+    setImageFile(null);
+    setMedicineInfo(null);
+    setError(null);
     setCameraActive(true);
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      videoRef.current.srcObject = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
     } catch (err) {
       console.error("Error accessing camera:", err);
+      setError("Could not access camera. Please check permissions.");
       setCameraActive(false);
     }
   };
 
   const stopCamera = () => {
-    if (videoRef.current.srcObject) {
+    if (videoRef.current && videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setCameraActive(false);
@@ -38,11 +54,16 @@ const MedicineScanner = () => {
   const captureImage = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
+    
+    if (!video || !canvas) return;
+    
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
     
     canvas.toBlob((blob) => {
+      const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
+      setImageFile(file);
       const imageUrl = URL.createObjectURL(blob);
       setImage(imageUrl);
       stopCamera();
@@ -50,25 +71,33 @@ const MedicineScanner = () => {
   };
 
   const analyzeMedicine = async () => {
+    if (!imageFile) {
+      setError("Please select or capture an image first");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    setProgress(10); // Started
-    
+    setMedicineInfo(null);
+
     try {
-        const result = await analyzePrescription(image);
-        setProgress(100);
-        
-        if (result.summary.includes('Error') || result.summary.includes('fail')) {
+      const result = await analyzePrescription(imageFile);
+      
+      if (result.summary.includes('Error') || result.summary.includes('fail')) {
         throw new Error(result.summary);
-        }
-        
-        setMedicineInfo(result);
+      }
+      
+      setMedicineInfo(result);
     } catch (err) {
-        setError(err.message);
-        setProgress(0);
+      setError(err.message || "Failed to analyze the medicine. Please try again.");
+      console.error("Analysis error:", err);
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click();
   };
 
   return (
@@ -78,22 +107,28 @@ const MedicineScanner = () => {
         <h2>Medicine Scanner</h2>
         <p>Show the back of your medicine to the camera or upload an image</p>
 
+        {error && <div className="error-message">{error}</div>}
+
         <div className="scanner-options">
           {!cameraActive ? (
             <button onClick={startCamera}>Use Camera</button>
           ) : (
-            <button onClick={captureImage}>Capture Image</button>
+            <>
+              <button onClick={captureImage}>Capture Image</button>
+              <button onClick={stopCamera}>Cancel</button>
+            </>
           )}
           <input 
+            ref={fileInputRef}
             type="file" 
             accept="image/*" 
             onChange={handleFileChange} 
             style={{ display: 'none' }} 
             id="medicine-upload"
           />
-          <label htmlFor="medicine-upload" className="upload-btn">
+          <button onClick={triggerFileInput} className="upload-btn">
             Upload Image
-          </label>
+          </button>
         </div>
 
         <div className="preview-section">
@@ -103,9 +138,10 @@ const MedicineScanner = () => {
               autoPlay 
               playsInline 
               className="camera-feed"
+              muted
             />
           )}
-          {image && (
+          {image && !cameraActive && (
             <div className="image-preview">
               <img src={image} alt="Medicine preview" />
               <button 
@@ -124,10 +160,6 @@ const MedicineScanner = () => {
           <div className="medicine-info">
             <h3>{medicineInfo.summary}</h3>
             <div className="info-grid">
-              <div>
-                <h4>Salts/Active Ingredients</h4>
-                <p>{medicineInfo.salts}</p>
-              </div>
               <div>
                 <h4>Uses</h4>
                 <ul>
@@ -152,6 +184,26 @@ const MedicineScanner = () => {
                   ))}
                 </ul>
               </div>
+              {medicineInfo.dietRecommendations && medicineInfo.dietRecommendations.length > 0 && (
+                <div>
+                  <h4>Diet Recommendations</h4>
+                  <ul>
+                    {medicineInfo.dietRecommendations.map((recommendation, index) => (
+                      <li key={index}>{recommendation}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {medicineInfo.adverseReactions && medicineInfo.adverseReactions.length > 0 && (
+                <div>
+                  <h4>Adverse Reactions</h4>
+                  <ul>
+                    {medicineInfo.adverseReactions.map((reaction, index) => (
+                      <li key={index}>{reaction}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         )}

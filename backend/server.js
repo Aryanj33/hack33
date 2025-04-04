@@ -53,7 +53,7 @@ app.post('/api/analyze-prescription', async (req, res) => {
       5. DIET_RECOMMENDATIONS: Food interactions
       6. ADVERSE_REACTIONS: Dangerous reactions
       
-      Respond in lamen terms so that even normal people can understand it.
+      Respond in lamen terms so that even normal people can understand it and keep the points short and crisp.
 
       Respond in this exact JSON format, only create pointers inside the array and no subkeys, keep the following structure as it is:
       {
@@ -81,8 +81,8 @@ app.post('/api/analyze-prescription', async (req, res) => {
       const text = response.text();
       console.log('Response text:', text);
       
-      let cleanText = text.replace(/^```json\n?/, '').replace(/```$/, '');
-      console.log('console log cleanText', cleanText);
+      let cleanText = text.trim().replace(/^```json\s*[\n]?/, '').replace(/```$/, '').trim();
+      console.log('Cleaned Response Text:', cleanText);
       
     let processedResponse = JSON.parse(cleanText);
 
