@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
 import { analyzePrescription } from '../services/geminiService';
 import '../styles/prescription.scss';
+import { Chatbot } from '../components/ChatBot';
 
 // Utility function to safely render list items
 const SafeList = ({ items, title }) => {
@@ -303,6 +304,7 @@ const PrescriptionAnalysis = () => {
                 </div>
                 )}
             </div>
+            <Chatbot />
         </div>
     );
 };

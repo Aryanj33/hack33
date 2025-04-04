@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../styles/home.scss';
 import Testimonials from './Testimonials';
+import { Chatbot } from '../components/ChatBot';
 
 
 const Home = () => {
@@ -127,6 +128,8 @@ const Home = () => {
           </div>
         </section>
       </main>
+      <Chatbot />
+      <Footer />
     </div>
   );
 };
