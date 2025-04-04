@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: hack33
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
