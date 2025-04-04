@@ -53,7 +53,9 @@ app.post('/api/analyze-prescription', async (req, res) => {
       5. DIET_RECOMMENDATIONS: Food interactions
       6. ADVERSE_REACTIONS: Dangerous reactions
       
-      Respond in this exact JSON format:
+      Respond in lamen terms so that even normal people can understand it.
+
+      Respond in this exact JSON format, only create pointers inside the array and no subkeys, keep the following structure as it is:
       {
         "summary": "",
         "uses": [],
