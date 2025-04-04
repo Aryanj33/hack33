@@ -200,106 +200,127 @@ DO NOT include:
 
 app.post('/api/analyze-medicine', async (req, res) => {
     const timeout = setTimeout(() => {
-      res.status(504).json({
-        success: false,
-        message: "Analysis timeout - server took too long to respond"
-      });
+        res.status(504).json({
+            success: false,
+            message: "Analysis timeout - server took too long to respond"
+        });
     }, 55000);
-  
+
     try {
-      const { imageData, mimeType } = req.body;
-      console.log("Received medicine analysis request");
-      
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-      });
-  
-      const prompt = `You are a pharmaceutical expert analyzing a medicine package image. 
-      Analyze this ${mimeType.startsWith('image') ? 'medicine package image' : 'document'} with high precision and provide:
-  
-      1. SUMMARY: The medicine name (brand/generic), dosage form (tablet, capsule, etc.), and primary purpose.
-  
-      2. USES: 2-3 specific medical conditions this medicine treats.
-  
-      3. SIDE_EFFECTS: 3-5 most common side effects patients should know.
-  
-      4. PRECAUTIONS: Specific warnings (IN ONE SMALL LINERS) about:
-         - Drug interactions
-         - Activities to avoid
-         - When to contact a doctor
-  
-      5. DIET_RECOMMENDATIONS: Any food/drink interactions or timing instructions.
-  
-      6. ADVERSE_REACTIONS: Serious reactions requiring immediate attention.
-  
-      Respond in this exact JSON format:
-      {
-        "summary": "",
-        "uses": [],
-        "sideEffects": [],
-        "precautions": [],
-        "dietRecommendations": [],
-        "adverseReactions": []
-      }`;
-  
-      const result = await model.generateContent({
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType, data: imageData } }
-          ]
-        }],
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.8,
-          maxOutputTokens: 1024
-        }
-      });
-  
-      clearTimeout(timeout);
-      
-      const response = await result.response;
-      const text = response.text();
-      
-      let cleanText = text.trim().replace(/^```json\s*[\n]?/, '').replace(/```$/, '').trim();
-      console.log('Processed medicine response received');
-      
-      let processedResponse;
-      try {
-        processedResponse = JSON.parse(cleanText);
+        const { imageData, mimeType } = req.body;
+        console.log("Received medicine analysis request");
+
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+        });
+
+        // Enhanced prompt with hallucination prevention
+        const prompt = `You are a pharmaceutical expert analyzing a medicine package image.
+Provide the following information with confidence ratings:
+
+1. SUMMARY: The most likely medicine name and purpose (be specific if possible)
+
+2. PROBABLE_MATCHES: List 2-3 possible brand/generic names if uncertain
+
+3. USES: Possible medical conditions this medicine treats
+   - Only include if clearly visible or highly likely
+   - Mark as uncertain if needed
+
+4. Other standard fields...
+
+5. CONFIDENCE: Rate as:
+   - "high" if text is clearly readable and matches known medicines
+   - "medium" if partially visible but good matches exist
+   - "low" if very unclear
+
+6. VERIFICATION_FLAGS: Note any uncertainties
+
+Respond in this JSON format:
+{
+  "summary": "",
+  "probableMatches": [],
+  "uses": [],
+  "sideEffects": [],
+  "precautions": [],
+  "dietRecommendations": [],
+  "adverseReactions": [],
+  "confidence": "medium",
+  "verificationFlags": []
+}`;
+
+        const result = await model.generateContent({
+            contents: [{
+                parts: [
+                    { text: prompt },
+                    { inlineData: { mimeType, data: imageData } }
+                ]
+            }],
+            generationConfig: {
+                temperature: 0.1, // Lower temperature for less creativity
+                topP: 0.5,       // More conservative sampling
+                maxOutputTokens: 1024
+            }
+        });
+
+        clearTimeout(timeout);
         
-        // Validate response structure
-        const requiredFields = ['summary', 'uses', 'sideEffects', 'precautions', 'dietRecommendations', 'adverseReactions'];
-        for (const field of requiredFields) {
-          if (!processedResponse[field]) {
-            processedResponse[field] = field === 'summary' ? 'Information not clearly visible' : [];
-          }
-          
-          if (field !== 'summary' && !Array.isArray(processedResponse[field])) {
-            processedResponse[field] = [processedResponse[field]].filter(Boolean);
-          }
-        }
+        const response = await result.response;
+        const text = response.text();
         
-      } catch (error) {
-        console.error("Error parsing medicine response:", error);
-        throw new Error("Invalid response format from medicine analysis");
-      }
-  
-      res.json({ 
-        success: true, 
-        analysis: processedResponse
-      });
-  
+        let cleanText = text.trim().replace(/^```json\s*[\n]?/, '').replace(/```$/, '').trim();
+        console.log('Processed medicine response received');
+        
+        let processedResponse;
+        try {
+            processedResponse = JSON.parse(cleanText);
+            
+            // Enhanced validation
+            const requiredFields = ['summary', 'uses', 'sideEffects', 'precautions', 
+                                  'dietRecommendations', 'adverseReactions', 
+                                  'confidence', 'verificationFlags'];
+            
+            for (const field of requiredFields) {
+                if (!processedResponse[field]) {
+                    processedResponse[field] = field === 'summary' ? 'Information not clearly visible' : 
+                                            field === 'confidence' ? 'low' : [];
+                }
+                
+                if (field !== 'summary' && field !== 'confidence' && !Array.isArray(processedResponse[field])) {
+                    processedResponse[field] = [processedResponse[field]].filter(Boolean);
+                }
+            }
+
+            // Post-processing to reduce hallucinations
+            if (processedResponse.confidence === 'low') {
+                processedResponse.verificationFlags.push('Low confidence analysis - requires human verification');
+            }
+
+            // Check for generic responses that might indicate poor image quality
+            if (processedResponse.summary.toLowerCase().includes('not clearly visible')) {
+                processedResponse.confidence = 'low';
+                processedResponse.verificationFlags.push('Key information not clearly visible in image');
+            }
+
+        } catch (error) {
+            console.error("Error parsing medicine response:", error);
+            throw new Error("Invalid response format from medicine analysis");
+        }
+
+        res.json({ 
+            success: true, 
+            analysis: processedResponse
+        });
+
     } catch (error) {
-      clearTimeout(timeout);
-      console.error("Medicine API Error:", error);
-      res.status(500).json({
-        success: false,
-        message: error.message || "Medicine analysis failed",
-        errorType: error.name
-      });
+        clearTimeout(timeout);
+        console.error("Medicine API Error:", error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Medicine analysis failed",
+            errorType: error.name
+        });
     }
-  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

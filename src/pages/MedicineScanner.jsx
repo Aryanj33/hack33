@@ -87,13 +87,19 @@ const MedicineScanner = () => {
         throw new Error(result.message || "Invalid medicine data received");
       }
       
-      setMedicineInfo(result);
+      // Add confidence visualization
+      setMedicineInfo({
+        ...result,
+        confidence: result.confidence || 'medium', // default to medium if not provided
+        verificationFlags: result.verificationFlags || []
+      });
     } catch (err) {
       setError(err.message || "Failed to analyze the medicine. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
 
   const triggerFileInput = () => {
@@ -157,56 +163,114 @@ const MedicineScanner = () => {
         </div>
 
         {medicineInfo && (
-          <div className="medicine-info">
-            <h3>{medicineInfo.summary}</h3>
-            <div className="info-grid">
-              <div>
-                <h4>Uses</h4>
-                <ul>
-                  {medicineInfo.uses.map((use, index) => (
-                    <li key={index}>{use}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4>Side Effects</h4>
-                <ul>
-                  {medicineInfo.sideEffects.map((effect, index) => (
-                    <li key={index}>{effect}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4>Precautions</h4>
-                <ul>
-                  {medicineInfo.precautions.map((precaution, index) => (
-                    <li key={index}>{precaution}</li>
-                  ))}
-                </ul>
-              </div>
-              {medicineInfo.dietRecommendations && medicineInfo.dietRecommendations.length > 0 && (
-                <div>
-                  <h4>Diet Recommendations</h4>
-                  <ul>
-                    {medicineInfo.dietRecommendations.map((recommendation, index) => (
-                      <li key={index}>{recommendation}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {medicineInfo.adverseReactions && medicineInfo.adverseReactions.length > 0 && (
-                <div>
-                  <h4>Adverse Reactions</h4>
-                  <ul>
-                    {medicineInfo.adverseReactions.map((reaction, index) => (
-                      <li key={index}>{reaction}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+  <div className="medicine-info">
+    <div className="confidence-header">
+      <h3>{medicineInfo.summary}</h3>
+      <div className={`confidence-badge ${medicineInfo.confidence}`}>
+        Confidence: {medicineInfo.confidence}
+      </div>
+    </div>
+    
+    {medicineInfo.verificationFlags.length > 0 && (
+      <div className="verification-notes">
+        <h4>Verification Notes:</h4>
+        <ul>
+          {medicineInfo.verificationFlags.map((flag, index) => (
+            <li key={index}>{flag}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {/* Probable Medicine Identification */}
+    {medicineInfo.probableMatches && medicineInfo.probableMatches.length > 0 && (
+      <div className="probable-matches">
+        <h4>Probable Matches:</h4>
+        <ul>
+          {medicineInfo.probableMatches.map((match, index) => (
+            <li key={index}>{match}</li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    {medicineInfo.confidence === 'low' ? (
+      <div className="partial-info">
+        <div className="low-confidence-warning">
+          <span className="warning-icon">⚠️</span>
+          <p>Some information may be incomplete or uncertain.</p>
+          <p>Here's what we can identify with lower confidence:</p>
+        </div>
+        
+        {medicineInfo.uses.length > 0 && (
+          <div className="info-section">
+            <h4>Possible Uses</h4>
+            <ul>
+              {medicineInfo.uses.map((use, index) => (
+                <li key={index}>{use} <span className="uncertain-label">(uncertain)</span></li>
+              ))}
+            </ul>
           </div>
         )}
+        
+        <div className="consult-warning">
+          <p>Please verify with a doctor or pharmacist before use.</p>
+        </div>
+      </div>
+    ) :  (
+      <div className="info-grid">
+        <div>
+          <h4>Uses</h4>
+          <ul>
+            {medicineInfo.uses.map((use, index) => (
+              <li key={index}>{use}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4>Side Effects</h4>
+          <ul>
+            {medicineInfo.sideEffects.map((effect, index) => (
+              <li key={index}>{effect}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4>Precautions</h4>
+          <ul>
+            {medicineInfo.precautions.map((precaution, index) => (
+              <li key={index}>{precaution}</li>
+            ))}
+          </ul>
+        </div>
+        {medicineInfo.dietRecommendations && medicineInfo.dietRecommendations.length > 0 && (
+          <div>
+            <h4>Diet Recommendations</h4>
+            <ul>
+              {medicineInfo.dietRecommendations.map((recommendation, index) => (
+                <li key={index}>{recommendation}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {medicineInfo.adverseReactions && medicineInfo.adverseReactions.length > 0 && (
+          <div>
+            <h4>Adverse Reactions</h4>
+            <ul>
+              {medicineInfo.adverseReactions.map((reaction, index) => (
+                <li key={index}>{reaction}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )}
+
+    <div className="disclaimer">
+      <p>Note: This analysis is AI-generated. Always consult a healthcare professional before making medical decisions.</p>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );

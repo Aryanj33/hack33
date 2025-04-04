@@ -3,8 +3,9 @@
     top: 1rem;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
-    max-width: 800px;
+    width: 95%; // Change from 90% to auto for desktop
+    padding: 0.5rem 1.5rem;
+    max-width: 1200px;
     background: rgba(15, 23, 42, 0.9);
     border-radius: 2rem;
     padding: 0.5rem 1rem;
@@ -13,7 +14,28 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
     transition: all 0.3s ease;
-  
+    
+    @media (min-width: 768px) {
+        width: auto; // Ensure it doesn't constrain width on desktop
+        padding: 0.5rem 2rem; // More padding on desktop
+    
+        .navbar-container {
+          // Ensure container doesn't limit width
+          width: 100%;
+        }
+    
+        .navbar-links {
+          // Prevent wrapping and ensure single line
+          white-space: nowrap;
+          flex-wrap: nowrap;
+          overflow-x: auto; // Add scroll if absolutely necessary
+          
+          a {
+            // Optional: reduce padding if needed to fit everything
+            padding: 0.5rem 0.8rem;
+          }
+        }
+      }
     &.expanded {
       border-radius: 1.5rem;
       width: 95%;
