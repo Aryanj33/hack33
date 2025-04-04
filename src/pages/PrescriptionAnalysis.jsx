@@ -54,7 +54,7 @@ const PrescriptionAnalysis = () => {
       <div className="content">
         <h2>Prescription Analysis</h2>
         <p>Upload your prescription (handwritten or typed) for detailed analysis</p>
-        
+        <div className="upload-form">
         <form onSubmit={handleSubmit}>
         <input
           type="file"
@@ -62,25 +62,25 @@ const PrescriptionAnalysis = () => {
           onChange={handleFileChange}
           disabled={isLoading}
         />
-        
         {isLoading && (
           <div className="progress-bar">
             <div style={{ width: `${progress}%` }}></div>
           </div>
         )}
-        
+        <center>
         <button type="submit" disabled={!file || isLoading}>
           {isLoading ? "Analyzing..." : "Analyze Prescription"}
         </button>
+        </center>
       </form>
-
+      </div>
         
         {analysis && (
           <div className="analysis-result">
             <h3>Analysis Results</h3>
             <div className="summary">
               <h4>Summary</h4>
-              <p>{analysis.summary}</p>
+              {analysis.summary}
             </div>
             <div className="precautions">
               <h4>Precautions</h4>
@@ -94,6 +94,30 @@ const PrescriptionAnalysis = () => {
               <h4>Recommended Diet</h4>
               <ul>
                 {analysis.dietRecommendations.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="uses">
+              <h4>Uses of the medicine(s)</h4>
+              <ul>
+                {analysis.uses.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="side-effects">
+              <h4>Possible sideeffects</h4>
+              <ul>
+                {analysis.sideEffects.map((item, index) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="adverse-reactions">
+              <h4>Adverse Reactions</h4>
+              <ul>
+                {analysis.adverseReactions.map((item, index) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>

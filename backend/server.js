@@ -46,7 +46,7 @@ app.post('/api/analyze-prescription', async (req, res) => {
       });
   
       const prompt = `Analyze this ${mimeType.startsWith('image') ? 'prescription image' : 'PDF prescription document'} and provide:
-      1. SUMMARY: Medication names and purposes
+      1. SUMMARY: Medication names (brands) and purposes
       2. USES: Conditions each medication treats
       3. SIDE_EFFECTS: Common side effects
       4. PRECAUTIONS: Important warnings

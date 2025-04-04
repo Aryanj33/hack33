@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
-import { recognizeMedicine } from '../services/imageRecognition';
+import { analyzePrescription } from '../services/geminiService';
 import '../styles/medicine.scss';
 
 const MedicineScanner = () => {
@@ -10,16 +10,15 @@ const MedicineScanner = () => {
   const [cameraActive, setCameraActive] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  
+
   const handleFileChange = (e) => {
     setImage(URL.createObjectURL(e.target.files[0]));
     setCameraActive(false);
   };
-  
+
   const startCamera = async () => {
     setImage(null);
     setCameraActive(true);
-    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       videoRef.current.srcObject = stream;
@@ -28,14 +27,14 @@ const MedicineScanner = () => {
       setCameraActive(false);
     }
   };
-  
+
   const stopCamera = () => {
     if (videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setCameraActive(false);
   };
-  
+
   const captureImage = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -49,28 +48,36 @@ const MedicineScanner = () => {
       stopCamera();
     }, 'image/jpeg', 0.95);
   };
-  
+
   const analyzeMedicine = async () => {
-    if (!image) return;
-    
     setIsLoading(true);
+    setError(null);
+    setProgress(10); // Started
+    
     try {
-      const response = await recognizeMedicine(image);
-      setMedicineInfo(response);
-    } catch (error) {
-      console.error('Error recognizing medicine:', error);
+        const result = await analyzePrescription(image);
+        setProgress(100);
+        
+        if (result.summary.includes('Error') || result.summary.includes('fail')) {
+        throw new Error(result.summary);
+        }
+        
+        setMedicineInfo(result);
+    } catch (err) {
+        setError(err.message);
+        setProgress(0);
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="medicine-container">
       <ParticleBackground />
       <div className="content">
         <h2>Medicine Scanner</h2>
         <p>Show the back of your medicine to the camera or upload an image</p>
-        
+
         <div className="scanner-options">
           {!cameraActive ? (
             <button onClick={startCamera}>Use Camera</button>
@@ -88,7 +95,7 @@ const MedicineScanner = () => {
             Upload Image
           </label>
         </div>
-        
+
         <div className="preview-section">
           {cameraActive && (
             <video 
@@ -112,18 +119,22 @@ const MedicineScanner = () => {
           )}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
-        
+
         {medicineInfo && (
           <div className="medicine-info">
-            <h3>{medicineInfo.name}</h3>
+            <h3>{medicineInfo.summary}</h3>
             <div className="info-grid">
               <div>
-                <h4>Generic Name</h4>
-                <p>{medicineInfo.genericName}</p>
+                <h4>Salts/Active Ingredients</h4>
+                <p>{medicineInfo.salts}</p>
               </div>
               <div>
                 <h4>Uses</h4>
-                <p>{medicineInfo.uses}</p>
+                <ul>
+                  {medicineInfo.uses.map((use, index) => (
+                    <li key={index}>{use}</li>
+                  ))}
+                </ul>
               </div>
               <div>
                 <h4>Side Effects</h4>
@@ -134,22 +145,10 @@ const MedicineScanner = () => {
                 </ul>
               </div>
               <div>
-                <h4>Dosage</h4>
-                <p>{medicineInfo.dosage}</p>
-              </div>
-              <div>
                 <h4>Precautions</h4>
                 <ul>
                   {medicineInfo.precautions.map((precaution, index) => (
                     <li key={index}>{precaution}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h4>Interactions</h4>
-                <ul>
-                  {medicineInfo.interactions.map((interaction, index) => (
-                    <li key={index}>{interaction}</li>
                   ))}
                 </ul>
               </div>
