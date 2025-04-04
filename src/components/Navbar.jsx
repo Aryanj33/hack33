@@ -34,12 +34,10 @@ const Navbar = () => {
           <Link to="/medicine" onClick={() => setIsExpanded(false)}>
             <i className="fas fa-pills"></i> Medicine Scanner
           </Link>
-          <a href="#about" onClick={() => setIsExpanded(false)}>
-            <i className="fas fa-info-circle"></i> About
-          </a>
-          <a href="#contact" onClick={() => setIsExpanded(false)}>
-            <i className="fas fa-envelope"></i> Contact
-          </a>
+          <Link to="/symptoms" onClick={() => setIsExpanded(false)}>
+            <i className="fas fa-stethoscope"></i> Symptoms Analyser
+          </Link>
+          
         </div>
       </div>
     </nav>

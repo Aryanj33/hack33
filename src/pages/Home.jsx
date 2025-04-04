@@ -129,7 +129,6 @@ const Home = () => {
         </section>
       </main>
       <Chatbot />
-      <Footer />
     </div>
   );
 };

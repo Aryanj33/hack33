@@ -60,55 +60,13 @@ const SymptomAnalyzer = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-black text-gray-100 relative overflow-hidden">
+        <br/><br/><br/>
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_24px] opacity-20" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_100%_200px,#3b82f620,transparent)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_0%_800px,#0ea5e920,transparent)]" />
       </div>
-
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-gray-800/50 bg-gray-900/80 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex items-center space-x-3 group"
-              onClick={() => navigate('/')}
-            >
-              <div className="relative">
-                <Brain className="w-8 h-8 text-blue-500 transition-transform duration-300 group-hover:scale-110" />
-                <motion.div
-                  className="absolute -inset-1 bg-blue-500/20 rounded-full blur"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [0.5, 0.8, 0.5],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                  }}
-                />
-              </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-               Symptoms Analyzer 
-              </span>
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700/50 hover:bg-gray-800/80 transition-all duration-300"
-              onClick={() => navigate(-1)}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </motion.button>
-          </div>
-        </div>
-      </nav>
 
       {/* Main Content */}
       <main className="relative z-10 container mx-auto px-4 py-8 sm:py-12 lg:py-16">
