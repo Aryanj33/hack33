@@ -8,6 +8,7 @@ import MedicineScanner from './pages/MedicineScanner';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import UserHome from './Pages/UserHome';
+import SymptomAnalyzer from './pages/SymptomAnalyzer';
 import './styles/main.scss';
 
 const App = () => {
@@ -23,6 +24,7 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/userhome" element={<UserHome />} /> 
+          <Route path="/symptoms" element={<SymptomAnalyzer />} />
         </Routes>
         <Footer />
       </div>
