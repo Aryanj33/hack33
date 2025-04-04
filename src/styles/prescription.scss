@@ -109,3 +109,53 @@
       }
     }
   }
+
+  .file-input-container {
+    input[type="file"] {
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      position: absolute;
+      z-index: -1;
+    }
+  
+    label {
+      display: block;
+      padding: 1rem;
+      border: 2px dashed rgba(255, 255, 255, 0.3);
+      border-radius: 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 1rem;
+  
+      &:hover {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.1);
+      }
+    }
+  }
+  
+  .error-message {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid #ef4444;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin: 1rem 0;
+    overflow: hidden;
+    
+    div {
+      height: 100%;
+      background: #3b82f6;
+      transition: width 0.3s ease;
+    }
+  }

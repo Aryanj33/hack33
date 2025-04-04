@@ -4,32 +4,50 @@ import { analyzePrescription } from '../services/geminiService';
 import '../styles/prescription.scss';
 
 const PrescriptionAnalysis = () => {
-  const [file, setFile] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+    const [file, setFile] = useState(null);
+    const [analysis, setAnalysis] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [progress, setProgress] = useState(0);
+  
+    const handleFileChange = (e) => {
+      const selectedFile = e.target.files[0];
+      if (selectedFile) {
+        setFile(selectedFile);
+        setAnalysis(null);
+        setError(null);
+        setProgress(0);
+      }
+    };
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!file) return;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!file) {
+          setError("Please select a prescription file");
+          return;
+        }
     
-    setIsLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append('prescription', file);
-      
-      const result = await analyzePrescription(formData);
-      setAnalysis(result);
-    } catch (error) {
-      console.error('Error analyzing prescription:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+        setIsLoading(true);
+        setError(null);
+        setProgress(10); // Started
+        
+        try {
+          const result = await analyzePrescription(file);
+          setProgress(100);
+          
+          if (result.summary.includes('Error') || result.summary.includes('fail')) {
+            throw new Error(result.summary);
+          }
+          
+          setAnalysis(result);
+        } catch (err) {
+          setError(err.message);
+          setProgress(0);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+    
   return (
     <div className="prescription-container">
       <ParticleBackground />
@@ -37,17 +55,25 @@ const PrescriptionAnalysis = () => {
         <h2>Prescription Analysis</h2>
         <p>Upload your prescription (handwritten or typed) for detailed analysis</p>
         
-        <form onSubmit={handleSubmit} className="upload-form">
-          <input 
-            type="file" 
-            accept="image/*,.pdf" 
-            onChange={handleFileChange} 
-            required
-          />
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Analyzing...' : 'Analyze Prescription'}
-          </button>
-        </form>
+        <form onSubmit={handleSubmit}>
+        <input
+          type="file"
+          accept="image/*,.pdf"
+          onChange={handleFileChange}
+          disabled={isLoading}
+        />
+        
+        {isLoading && (
+          <div className="progress-bar">
+            <div style={{ width: `${progress}%` }}></div>
+          </div>
+        )}
+        
+        <button type="submit" disabled={!file || isLoading}>
+          {isLoading ? "Analyzing..." : "Analyze Prescription"}
+        </button>
+      </form>
+
         
         {analysis && (
           <div className="analysis-result">
