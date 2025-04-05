@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
 import { analyzePrescription } from '../services/geminiService';
 import '../styles/prescription.scss';
-import { Chatbot } from '../components/ChatBot';
+import { Chatbot } from '../components/Chatbot';
 
 // Utility function to safely render list items
 const SafeList = ({ items, title }) => {
