@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import ParticleBackground from '../components/ParticleBackground';
 import { analyzeMedicineImage } from '../services/medicineService'; // Correct import
 import '../styles/medicine.scss';
-import { Chatbot } from '../components/ChatBot';
+import { Chatbot } from '../components/Chatbot'; // Correct import
 
 const MedicineScanner = () => {
   const [image, setImage] = useState(null);
