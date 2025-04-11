@@ -30,18 +30,18 @@ Mediverse is an advanced one stop healthcare solution designed to empower users 
   - Immersive learning experience
   - Comprehensive human anatomy exploration
 
-- **Advanced OCR with Tesseract for Medicine Recognition** 🔬:
-- Address Medicine Identification Issues
-   Tackle the common problem in India where people struggle to identify medicines once removed from packaging, reducing confusion and misuse.
-
-- AI-Based Identification  
-   Utilize an AI model to analyze key packaging details such as active salts, manufacturer, color, and text to accurately identify medicines.
-
-- Improved Medication Safety  
-  Assist users in correctly recognizing and consuming medicines, especially prescription drugs, thereby minimizing the risk of intake errors.
-
-- Ongoing Development & Expansion
-   Enhance the model post-hackathon with improved accuracy, mobile app integration, and real-world deployment for broader accessibility and impact.
+- **Creating own model for precise medicine recognition** 🔬:
+  - Address Medicine Identification Issues
+     Tackle the common problem in India where people struggle to identify medicines once removed from packaging, reducing confusion and misuse.
+  
+  - AI-Based Identification  
+     Utilize an AI model to analyze key packaging details such as active salts, manufacturer, color, and text to accurately identify medicines.
+  
+  - Improved Medication Safety  
+    Assist users in correctly recognizing and consuming medicines, especially prescription drugs, thereby minimizing the risk of intake errors.
+  
+  - Ongoing Development & Expansion
+     Enhance the model post-hackathon with improved accuracy, mobile app integration, and real-world deployment for broader accessibility and impact.
 
 ## Technologies Used 💻
 - React.js
