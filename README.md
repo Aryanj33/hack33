@@ -13,7 +13,7 @@ Mediverse is an advanced one stop healthcare solution designed to empower users 
     - Ensures minimal risk of hallucinations or incorrect interpretations
 
 - **Symptom Analyzer Powered by Akash AI** 🩺🔍: 
-  - Advanced AI-driven symptom assessment
+  - AI-driven symptom assessment
   - Comprehensive medical insights
   - Personalized health recommendations
 
@@ -31,18 +31,20 @@ Mediverse is an advanced one stop healthcare solution designed to empower users 
   - Comprehensive human anatomy exploration
 
 - **Advanced OCR with Tesseract for Medicine Recognition** 🔬:
-  - Implement Tesseract OCR for enhanced image recognition
-  - Cross-reference medicine information with comprehensive database
-  - Increase accuracy through multi-dimensional verification:
-    - Medicine color analysis
-    - Precise dimensional measurements
-    - Texture and packaging pattern recognition
-  - Build a robust, cross-referenced medicine information system
-  - Improve reliability of medicine information extraction
+- Address Medicine Identification Issues
+   Tackle the common problem in India where people struggle to identify medicines once removed from packaging, reducing confusion and misuse.
+
+- AI-Based Identification  
+   Utilize an AI model to analyze key packaging details such as active salts, manufacturer, color, and text to accurately identify medicines.
+
+- Improved Medication Safety  
+  Assist users in correctly recognizing and consuming medicines, especially prescription drugs, thereby minimizing the risk of intake errors.
+
+- Ongoing Development & Expansion
+   Enhance the model post-hackathon with improved accuracy, mobile app integration, and real-world deployment for broader accessibility and impact.
 
 ## Technologies Used 💻
 - React.js
-- Vite
 - Three.js
 - TSParticles
 - Gemini AI
