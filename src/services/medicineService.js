@@ -1,3 +1,5 @@
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export const analyzeMedicineImage = async (imageFile) => {
     try {
       // Convert to base64
@@ -8,7 +10,7 @@ export const analyzeMedicineImage = async (imageFile) => {
         reader.readAsDataURL(imageFile);
       });
   
-      const response = await fetch('/api/analyze-medicine', {
+      const response = await fetch(`${API_BASE}/api/analyze-medicine`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

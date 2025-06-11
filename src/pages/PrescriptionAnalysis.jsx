@@ -112,7 +112,10 @@ const PrescriptionAnalysis = () => {
             <ParticleBackground />
             <div className="content">
                 <h2>Prescription Analysis</h2>
-                <p>Upload your prescription (handwritten or typed) for detailed analysis</p>
+                <p>Upload your prescription (handwritten or typed) for detailed analysis
+                    <br/>
+          (Because of free render deployement repsonse might sometimes take longer than expected to fetch)
+                </p>
                 
                 {/* User Details Form */}
                 <div className="user-details-form">

@@ -112,7 +112,10 @@ const MedicineScanner = () => {
       <ParticleBackground />
       <div className="content">
         <h2>Medicine Scanner</h2>
-        <p>Show the back of your medicine to the camera or upload an image</p>
+        <p>Show the back of your medicine to the camera or upload an image
+          <br/>
+          (Because of free render deployement repsonse might sometimes take longer than expected to fetch)
+        </p>
 
         {error && <div className="error-message">{error}</div>}
 

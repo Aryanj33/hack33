@@ -1,6 +1,8 @@
+const API_BASE = import.meta.env.VITE_API_BASE || '';
+
 export const analyzePrescription = async (file, userDetails = {}) => {
     const controller = new AbortController();
-    const TIMEOUT = 60000; // 60 seconds
+    const TIMEOUT = 600000; // 60 seconds
   
     try {
       // Validate file
@@ -62,7 +64,7 @@ export const analyzePrescription = async (file, userDetails = {}) => {
   
   // Helper functions
   const makeAnalysisRequest = async (base64Data, mimeType, userDetails, signal) => {
-    const response = await fetch('/api/analyze-prescription', {
+    const response = await fetch(`${API_BASE}/api/analyze-prescription`, {
       method: 'POST',
       signal,
       headers: { 'Content-Type': 'application/json' },
