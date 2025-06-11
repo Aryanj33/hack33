@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 
 // Enhanced CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'https://mediverse-jh0x.onrender.com'],
   credentials: true
 }));
 
