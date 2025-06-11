@@ -28,9 +28,6 @@ const Navbar = () => {
           <Link to="/prescription" onClick={() => setIsExpanded(false)}>
             <i className="fas fa-prescription"></i> Prescription
           </Link>
-          <Link to="/organs" onClick={() => setIsExpanded(false)}>
-            <i className="fas fa-lungs"></i> 3D Organs
-          </Link>
           <Link to="/medicine" onClick={() => setIsExpanded(false)}>
             <i className="fas fa-pills"></i> Medicine Scanner
           </Link>

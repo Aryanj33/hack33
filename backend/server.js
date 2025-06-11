@@ -29,6 +29,11 @@ try {
   process.exit(1);
 }
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the Hack33 Backend API');
+}
+);
+
 app.post('/api/analyze-prescription', async (req, res) => {
     const timeout = setTimeout(() => {
       res.status(504).json({
